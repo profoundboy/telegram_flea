@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  telegramflea:
+    image: telegramflea
+    build:
+      context: .
+      dockerfile: ./Dockerfile

@@ -8,6 +8,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types.inline_keyboard import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.types.callback_query import CallbackQuery
+from aiogram.utils import exceptions
 from dotenv import load_dotenv
 
 from po_compile import compile_all_languages
@@ -104,6 +105,25 @@ async def enter_photo(message: aiogram.types.Message, state: FSMContext):
     await message.reply(
         i18n.gettext("bot.thanks_sale", locale=BOT_LANGUAGE), reply_markup=reply_markup
     )
+
+    # Photo upload max caption of 2000 max character symbools
+    max_symbols = 2000
+
+    # For message errors related to caption length
+    try:
+        if caption is not None and len(caption) > max_symbols:
+            raise exceptions.ValueError("Caption can't exceed 2000 words")
+    except exceptions.ValueError as i:
+        await message.reply(f"Error: {i}")
+
+    # Specifically checking for caption length exceeding limit
+    except exceptions.BadRequest as bad_request:
+        if "caption exceeds 2000" in str(bad_request):
+            await message.reply("Error: Sorry, Caption can't exceed 2000 characters")
+        else:
+            await message.reply(f"Error: {bad_request}")
+    except exceptions.TelegramAPIError as api_error:
+        await message.reply(f"Error: {api_error}")
 
 
 @dp.callback_query_handler()
